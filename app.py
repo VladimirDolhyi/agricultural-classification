@@ -4,9 +4,13 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
+
+# Limit upload size (2 MB)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Load model
 model = load_model(os.path.join(BASE_DIR, "crop_classifier.h5"))
@@ -39,7 +43,7 @@ def predict():
     img_array = image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
-    prediction = model.predict(img_array)
+    prediction = model(img_array, training=False).numpy()
     class_idx = np.argmax(prediction)
     class_name = CLASS_NAMES[class_idx]
 
