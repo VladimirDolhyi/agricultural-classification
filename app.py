@@ -4,14 +4,22 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
-model = load_model("crop_classifier.h5")
 
+# Load model
+model = load_model(os.path.join(BASE_DIR, "crop_classifier.h5"))
 
+# Data directory
 # Automatically obtaining classes
-data_dir = "data/Agricultural-crops"
+data_dir = os.path.join(BASE_DIR, "data", "Agricultural-crops")
 CLASS_NAMES = sorted(os.listdir(data_dir))
 print("Classes detected:", CLASS_NAMES)
+
+# Uploads
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 @app.route("/")
@@ -24,7 +32,7 @@ def predict():
     if "file" not in request.files:
         return "No file uploaded"
     file = request.files["file"]
-    filepath = os.path.join("static/uploads", file.filename)
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
 
     img = image.load_img(filepath, target_size=(128, 128))
@@ -39,4 +47,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)

@@ -84,8 +84,8 @@ agricultural_classification/
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/VladimirDolhyi/agricultural-classification-.git
-cd agricultural-classification-
+git clone https://github.com/VladimirDolhyi/agricultural-classification.git
+cd agricultural-classification
 ```
 ### 2️⃣ Create and activate virtual environment
 ```bash
@@ -108,6 +108,9 @@ http://127.0.0.1:5000/
 
 **Input image:**
 
-![Input image](static/uploads/image2.jpeg)
+![Input image](static/example/Upload.png)
+![Input image](static/uploads/image25.jpeg)
 
-**Prediction result:** chili
+**Prediction result:**
+
+![Input image](static/example/Prediction_result.png)

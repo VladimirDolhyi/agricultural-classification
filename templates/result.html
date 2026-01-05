@@ -1,3 +1,20 @@
-<img src="{{ url_for("static", filename="uploads/" + filename) }}" width="300">
-<p>Prediction: {{ prediction }}</p>
-<a href="/">Try another image</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Prediction Result</h1>
+
+    <img src="{{ url_for('static', filename='uploads/' + filename) }}" width="300">
+
+    <h2>Predicted class:</h2>
+    <p><strong>{{ prediction }}</strong></p>
+
+    <a href="/">🔁 Try another image</a>
+</div>
+</body>
+</html>
