@@ -10,7 +10,6 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "crop_classifier.h5")
-
 IMG_SIZE = (128, 128)
 
 CLASSES = [
@@ -69,17 +68,20 @@ def predict():
     error = None
 
     file = request.files.get("file")
-
     if not file or file.filename == "":
         error = "Please upload an image file."
     else:
         try:
+            print("Received file:", file.filename)
             x = prepare_image(file)
+            print("Image prepared, predicting...")
             preds = model.predict(x, verbose=0)
             class_idx = int(np.argmax(preds))
             prediction = CLASSES[class_idx]
+            print("Prediction done:", prediction)
         except Exception as e:
             error = f"Prediction error: {str(e)}"
+            print("Error", error)
 
     return render_template(
         "index.html",
