@@ -1,53 +1,36 @@
 from flask import Flask, request, render_template
 from PIL import Image
 import numpy as np
-import tensorflow as tf
 import os
 
 app = Flask(__name__)
-
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "crop_classifier.h5")
+MODEL_PATH = os.path.join(BASE_DIR, "crop_classifier.tflite")
 IMG_SIZE = (128, 128)
 
 CLASSES = [
-    "Cherry",
-    "Coffee-plant",
-    "Cucumber",
-    "Fox_nut(Makhana)",
-    "Lemon",
-    "Olive-tree",
-    "Pearl_millet(bajra)",
-    "Tobacco-plant",
-    "almond",
-    "banana",
-    "cardamom",
-    "chilli",
-    "clove",
-    "coconut",
-    "cotton",
-    "gram",
-    "jowar",
-    "jute",
-    "maize",
-    "mustard-oil",
-    "papaya",
-    "pineapple",
-    "rice",
-    "soyabean",
-    "sugarcane",
-    "sunflower",
-    "tea",
-    "tomato",
-    "vigna-radiati(Mung)",
-    "wheat",
+    "Cherry", "Coffee-plant", "Cucumber", "Fox_nut(Makhana)", "Lemon",
+    "Olive-tree", "Pearl_millet(bajra)", "Tobacco-plant", "almond", "banana",
+    "cardamom", "chilli", "clove", "coconut", "cotton", "gram", "jowar",
+    "jute", "maize", "mustard-oil", "papaya", "pineapple", "rice",
+    "soyabean", "sugarcane", "sunflower", "tea", "tomato",
+    "vigna-radiati(Mung)", "wheat"
 ]
 
-print("Loading model...")
-model = tf.keras.models.load_model(MODEL_PATH)
-print("Model loaded successfully")
+# ---------- Load TFLite ----------
+try:
+    import tflite_runtime.interpreter as tflite
+    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    USE_TFLITE = True
+    print("Using tflite-runtime")
+except ImportError:
+    USE_TFLITE = False
+    print("tflite-runtime not available (local Windows)")
 
 
 def prepare_image(file):
@@ -55,6 +38,16 @@ def prepare_image(file):
     img = img.resize(IMG_SIZE)
     img_array = np.array(img, dtype=np.float32) / 255.0
     return np.expand_dims(img_array, axis=0)
+
+
+def predict_image(x):
+    if USE_TFLITE:
+        interpreter.set_tensor(input_details[0]["index"], x)
+        interpreter.invoke()
+        preds = interpreter.get_tensor(output_details[0]["index"])
+        return preds
+    else:
+        raise RuntimeError("TFLite runtime not available")
 
 
 @app.route("/", methods=["GET"])
@@ -72,22 +65,14 @@ def predict():
         error = "Please upload an image file."
     else:
         try:
-            print("Received file:", file.filename)
             x = prepare_image(file)
-            print("Image prepared, predicting...")
-            preds = model.predict(x, verbose=0)
+            preds = predict_image(x)
             class_idx = int(np.argmax(preds))
             prediction = CLASSES[class_idx]
-            print("Prediction done:", prediction)
         except Exception as e:
-            error = f"Prediction error: {str(e)}"
-            print("Error", error)
+            error = str(e)
 
-    return render_template(
-        "index.html",
-        prediction=prediction,
-        error=error
-    )
+    return render_template("index.html", prediction=prediction, error=error)
 
 
 if __name__ == "__main__":

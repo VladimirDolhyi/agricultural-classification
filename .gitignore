@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .idea/
 .env
+data/
+static/uploads
+static/example
+crop_classifier.h5
