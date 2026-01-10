@@ -1,14 +1,15 @@
-from flask import Flask, request, render_template
-from PIL import Image
+from flask import Flask, render_template, request
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
 
-app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "crop_classifier.tflite")
-IMG_SIZE = (128, 128)
+
+app = Flask(__name__)
+
+# Load model
+model = load_model(os.path.join(BASE_DIR, "crop_classifier.h5"))
 
 CLASSES = [
     "Cherry", "Coffee-plant", "Cucumber", "Fox_nut(Makhana)", "Lemon",
@@ -19,62 +20,32 @@ CLASSES = [
     "vigna-radiati(Mung)", "wheat"
 ]
 
-# ---------- Load TFLite ----------
-try:
-    import tflite_runtime.interpreter as tflite
-    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
-    interpreter.allocate_tensors()
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    USE_TFLITE = True
-    print("Using tflite-runtime")
-except ImportError:
-    USE_TFLITE = False
-    print("tflite-runtime not available (local Windows)")
+# Uploads
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-def prepare_image(file):
-    img = Image.open(file).convert("RGB")
-    img = img.resize(IMG_SIZE)
-    img_array = np.array(img, dtype=np.float32) / 255.0
-    return np.expand_dims(img_array, axis=0)
-
-
-def predict_image(x):
-    if USE_TFLITE:
-        interpreter.set_tensor(input_details[0]["index"], x)
-        interpreter.invoke()
-        preds = interpreter.get_tensor(output_details[0]["index"])
-        return preds
-    else:
-        raise RuntimeError("TFLite runtime not available")
-
-
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
     return render_template("index.html")
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    prediction = None
-    error = None
+    if "file" not in request.files:
+        return "No file uploaded"
+    file = request.files["file"]
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(filepath)
 
-    file = request.files.get("file")
-    if not file or file.filename == "":
-        error = "Please upload an image file."
-    else:
-        try:
-            x = prepare_image(file)
-            preds = predict_image(x)
-            class_idx = int(np.argmax(preds))
-            prediction = CLASSES[class_idx]
-        except Exception as e:
-            error = str(e)
-
-    return render_template("index.html", prediction=prediction, error=error)
+    img = image.load_img(filepath, target_size=(128, 128))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    prediction = model.predict(img_array)
+    class_idx = np.argmax(prediction)
+    class_name = CLASSES[class_idx]
+    return render_template("result.html", filename=file.filename, prediction=class_name)
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=5000)
