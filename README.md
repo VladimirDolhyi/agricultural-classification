@@ -104,16 +104,12 @@ python app.py
 ```bash
 http://127.0.0.1:5000/
 ```
-### 👉 Render link
-
-https://agricultural-classification.onrender.com
 
 ## 🖼 Example
 
 **Input image:**
 
 ![Input image](static/example/Upload.png)
-![Input image](static/uploads/image25.jpeg)
 
 **Prediction result:**
 
