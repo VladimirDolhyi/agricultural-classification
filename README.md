@@ -38,7 +38,7 @@ The model was trained using **Google Colab** with GPU support.
 🔗 **https://colab.research.google.com/drive/1doyXrzPbLtsiQ-7F2estMGVIxn2Y3kTa?usp=sharing**
 
 After training, the model was saved as:
-crop_classifier.h5
+crop_classifier_light.h5
 and downloaded for local inference in the Flask application.
 
 ---
@@ -66,7 +66,7 @@ The Flask web app allows users to:
 agricultural_classification/
 │
 ├── app.py                 # Flask application
-├── crop_classifier.h5     # Trained model
+├── crop_classifier_light.h5     # Trained model
 ├── data/
 │   └── Agricultural-crops/ # Dataset (folders = classes)
 ├── static/
