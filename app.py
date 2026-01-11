@@ -44,7 +44,11 @@ def predict():
     prediction = model.predict(img_array)
     class_idx = np.argmax(prediction)
     class_name = CLASSES[class_idx]
-    return render_template("result.html", filename=file.filename, prediction=class_name)
+    return render_template(
+        "result.html",
+        filename=file.filename,
+        prediction=class_name
+    )
 
 
 if __name__ == "__main__":
