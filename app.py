@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
 # Load model
-model = load_model(os.path.join(BASE_DIR, "crop_classifier.h5"))
+model = load_model(os.path.join(BASE_DIR, "crop_classifier_light.h5"))
 
 CLASSES = [
     "Cherry", "Coffee-plant", "Cucumber", "Fox_nut(Makhana)", "Lemon",
